@@ -1,16 +1,4 @@
 
-
-```ascii
-                   .~vVeZNgQBN#B##@@B@B@B@@@M~                   abdelkrimkr@github
-                `~v}!{P8B@B@B@B@B@B@B@B@B@B@B#;                 ----------------
-              `~v}!{XB@@@B@B@B@B@B@B@B@B@B@B@B@Bi               OS: GitHub Pro
-            `~v}!{P8B@B@B@B@B@B@@@B@B@B@B@B@B@B@B#-             Uptime: Always Coding
-          .~v}!{C8B@B@B@B@B@B@B@B@B@B@B@B@B@B@B@B@g:           Shell: JavaScript/Python
-        .~v}!{C8B@B@B@B@B@B@B@B@B@B@B@B@B@B@B@B@B@B#;          Editor: VS Code
-      .~v}!{C8B@B@B@B@B@B@B@B@B@B@B@B@B@B@B@B@B@B@B@Bi         Theme: Matrix Dark
-    .~v}!{C8B@B@B@B@B@B@B@B@B@B@B@B@B@B@B@B@B@B@B@B@B#-       Location: Digital Realm
-```
-
 ```csharp
 const profile = {
     name: "Abdelkrim",
@@ -88,6 +76,13 @@ const profile = {
 </div>
 
 <div align="center">
+  
+  
+Operating Systems, Compilers, Virtual Machines, Memory Management, File Systems
+
+![](https://komarev.com/ghpvc/?username=abdelkrimkr&color=2196f3)
+
+
 
 ```python
 def say_goodbye():
