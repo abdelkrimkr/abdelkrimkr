@@ -1,0 +1,40 @@
+\documentclass[12pt, a4paper]{article}
+
+% Language and font encoding
+\usepackage[french]{babel} % Use French language settings
+\usepackage[utf8]{inputenc} % Allow utf-8 input
+\usepackage[T1]{fontenc}    % Use 8-bit T1 fonts
+
+% Page layout
+\usepackage{geometry}
+\geometry{a4paper, margin=1in}
+
+% Title and author information
+\title{Effet comparatif de l’extrait butanolique de la plante Stachys mialhesi avec les vitamines B9 et B12 sur quelques paramètres biochimiques et la structure de l’aorte chez des souris induites par une hyperhomocystéinémie}
+\author{} % Author can be added later
+\date{\today}
+
+% Packages for math, figures, and bibliography
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage[numbers, sort&compress]{natbib} % For bibliography management
+
+\begin{document}
+
+\maketitle
+\begin{abstract}
+% Abstract content will go here
+\end{abstract}
+
+% Input sections from their respective files
+\input{introduction/introduction.tex}
+\input{methods/methods.tex}
+\input{results/results.tex}
+\input{discussion/discussion.tex}
+\input{conclusion/conclusion.tex}
+
+% Bibliography
+\bibliographystyle{plainnat} % Bibliography style
+\bibliography{references}    % The .bib file is named references.bib
+
+\end{document}

@@ -1,0 +1,54 @@
+name: Build LaTeX PDF
+
+on:
+  push:
+    branches:
+      - main # Or your default branch
+      - master # In case 'master' is used
+  workflow_dispatch: # Allows manual triggering
+
+jobs:
+  build_pdf:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up TeX Live
+        uses: xu-cheng/texlive-action@v2
+        with:
+          # A minimal scheme is usually faster to install.
+          # scheme: basic 
+          # You can specify packages to install. 
+          # For a French document, babel-french is essential.
+          # Add other packages used by your main.tex if not covered by a larger scheme.
+          # texlive-latex-extra often contains many useful packages.
+          # Adjust the package list as needed based on your document's requirements.
+          packages: >-
+            scheme-full 
+            babel-french 
+            latexmk
+            amsmath
+            graphicx
+            natbib 
+            geometry
+            # Add any other specific packages your document uses here
+            # For example, if you use specific fonts or other complex packages.
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x' # Use a recent Python 3 version
+
+      - name: Build PDF
+        run: |
+          python build_pdf.py
+        # The build_pdf.py script should handle errors and output.
+        # Ensure it places the PDF in a known location (e.g., project root as main.pdf).
+
+      - name: Upload PDF artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: main-pdf
+          path: main.pdf # Path to the generated PDF file
+          if-no-files-found: error # Fail if PDF is not found
