@@ -10,7 +10,7 @@ This project includes a GitHub Actions workflow (`.github/workflows/build_latex.
 
 You can also trigger the build manually from the "Actions" tab of the GitHub repository.
 
-The generated PDF will be available as an artifact that can be downloaded from the summary page of the workflow run. Look for an artifact named "main-pdf".
+The generated PDF will be available as an artifact that can be downloaded from the summary page of the workflow run (look for an artifact named "main-pdf"). **If the build process fails, the workflow will attempt to automatically create a GitHub issue with the details from the build log (`build_log.txt`).**
 
 ## Project Structure
 

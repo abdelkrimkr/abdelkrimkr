@@ -1,15 +1,14 @@
 import subprocess
 import os
-import shutil
+import shutil # shutil is not used in the current version, but kept for potential future use
+import sys
 
 def compile_latex():
     project_root = os.path.abspath(os.path.dirname(__file__))
     latex_file_name = "main.tex"
     src_dir = os.path.join(project_root, "src")
-    output_dir = project_root # Output PDF in the project root
-
-    # Ensure the output directory exists (it's the project root, so it does)
-    # os.makedirs(output_dir, exist_ok=True)
+    output_dir = project_root # Output PDF and aux files to project root
+    log_file_path = os.path.join(project_root, "build_log.txt")
 
     latex_file_path = os.path.join(src_dir, latex_file_name)
     
@@ -18,19 +17,15 @@ def compile_latex():
         "pdflatex",
         "-interaction=nonstopmode",
         "-output-directory", 
-        output_dir, # Output PDF and aux files to project root
+        output_dir,
         latex_file_path
     ]
     
-    # Bibtex needs to run in the directory where the .aux file is.
-    # If -output-directory is used with pdflatex, .aux files go there.
-    # So, bibtex should run on 'main.aux' in the output_dir.
     bibtex_cmd_template = [
         "bibtex",
-        os.path.join(output_dir, "main") # Runs on main.aux
+        os.path.join(output_dir, "main") # Runs on main.aux in output_dir
     ]
 
-    # LaTeX compilation sequence
     commands = [
         ("pdflatex_pass_1", pdflatex_cmd_template),
         ("bibtex", bibtex_cmd_template),
@@ -38,49 +33,72 @@ def compile_latex():
         ("pdflatex_pass_3", pdflatex_cmd_template),
     ]
 
-    for step_name, command in commands:
-        print(f"Running {step_name}...")
-        try:
-            # For bibtex, the CWD should be output_dir if aux file is there
-            # For pdflatex, it needs to find the main.tex in src_dir
-            # The provided pdflatex command correctly specifies the full path to main.tex
-            # and output-directory.
-            # Bibtex is trickier with paths if not run in the dir with aux files.
-            # A common pattern is to run bibtex in the directory where main.aux is.
-            
-            cwd_for_command = output_dir if "bibtex" in step_name else project_root
+    with open(log_file_path, "w") as log_file:
+        for step_name, command in commands:
+            log_file.write(f"--- Running {step_name} ---\n")
+            print(f"Running {step_name}...")
+            try:
+                # Determine CWD for the command
+                # Bibtex should run where the .aux file is (output_dir)
+                # pdflatex can run from project_root as paths are absolute or specified
+                cwd_for_command = output_dir if "bibtex" in step_name else project_root
+                
+                process = subprocess.run(command, capture_output=True, text=True, cwd=cwd_for_command, check=False)
+                
+                log_file.write(f"Command: {' '.join(command)}\n")
+                log_file.write(f"Return Code: {process.returncode}\n")
+                log_file.write("Stdout:\n")
+                log_file.write(process.stdout + "\n")
+                log_file.write("Stderr:\n")
+                log_file.write(process.stderr + "\n")
 
-            process = subprocess.run(command, capture_output=True, text=True, check=True, cwd=cwd_for_command)
-            print(f"{step_name} output:\n{process.stdout}")
-            if process.stderr:
-                print(f"{step_name} errors:\n{process.stderr}")
-        except subprocess.CalledProcessError as e:
-            print(f"Error during {step_name}: {e}")
-            print(f"Command: {' '.join(e.cmd)}")
-            print(f"Stdout:\n{e.stdout}")
-            print(f"Stderr:\n{e.stderr}")
-            return False
-        except FileNotFoundError as e:
-            print(f"Error: Command not found during {step_name} - {e.filename}. Ensure LaTeX (pdflatex, bibtex) is installed and in your PATH.")
-            return False
-        print(f"{step_name} completed successfully.")
+                if process.returncode != 0:
+                    print(f"Error during {step_name}. Check build_log.txt for details.")
+                    log_file.write(f"\n--- {step_name} FAILED ---\n")
+                    log_file.write("--- BUILD FAILED ---\n")
+                    print("BUILD FAILED")
+                    return False
+                
+                print(f"{step_name} completed successfully.")
+                log_file.write(f"--- {step_name} completed successfully ---\n\n")
 
-    # Check if PDF was created
-    pdf_filename = os.path.join(output_dir, "main.pdf")
-    if os.path.exists(pdf_filename):
-        print(f"Successfully generated PDF: {pdf_filename}")
-        # Optional: Move PDF to a specific 'output' folder if desired
-        # final_pdf_dir = os.path.join(project_root, "output")
-        # os.makedirs(final_pdf_dir, exist_ok=True)
-        # shutil.move(pdf_filename, os.path.join(final_pdf_dir, "document.pdf"))
-        # print(f"Moved PDF to {os.path.join(final_pdf_dir, 'document.pdf')}")
-        return True
-    else:
-        print(f"Error: PDF file {pdf_filename} not found after compilation.")
-        return False
+            except FileNotFoundError as e:
+                error_message = f"Error: Command not found during {step_name} - {e.filename}. Ensure LaTeX (pdflatex, bibtex) is installed and in your PATH."
+                print(error_message)
+                log_file.write(error_message + "\n")
+                log_file.write("--- BUILD FAILED ---\n")
+                print("BUILD FAILED")
+                return False
+            except Exception as e: # Catch any other unexpected errors during subprocess execution
+                error_message = f"An unexpected error occurred during {step_name}: {str(e)}"
+                print(error_message)
+                log_file.write(error_message + "\n")
+                log_file.write("--- BUILD FAILED ---\n")
+                print("BUILD FAILED")
+                return False
+
+
+        pdf_filename = os.path.join(output_dir, "main.pdf")
+        if os.path.exists(pdf_filename):
+            success_message = f"Successfully generated PDF: {pdf_filename}"
+            print(success_message)
+            log_file.write("\n" + success_message + "\n")
+            log_file.write("--- BUILD SUCCESSFUL ---\n")
+            print("BUILD SUCCESSFUL")
+            return True
+        else:
+            error_message = f"Error: PDF file {pdf_filename} not found after compilation. Check build_log.txt for details."
+            print(error_message)
+            log_file.write("\n" + error_message + "\n")
+            log_file.write("--- BUILD FAILED: PDF not found ---\n")
+            print("BUILD FAILED")
+            return False
 
 if __name__ == "__main__":
     if compile_latex():
         print("LaTeX compilation successful.")
+        sys.exit(0)
     else:
-        print("LaTeX compilation failed.")
+        # The detailed "BUILD FAILED" message and "check build_log.txt" is already printed by compile_latex()
+        print("LaTeX compilation failed. See build_log.txt for details.")
+        sys.exit(1)

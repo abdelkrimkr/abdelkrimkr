@@ -41,14 +41,29 @@ jobs:
           python-version: '3.x' # Use a recent Python 3 version
 
       - name: Build PDF
+        id: build_step # Added id for referencing outcome
         run: |
           python build_pdf.py
-        # The build_pdf.py script should handle errors and output.
-        # Ensure it places the PDF in a known location (e.g., project root as main.pdf).
+        # The build_pdf.py script handles errors and output.
+        # It generates build_log.txt and main.pdf in the project root.
+        # It will exit with a non-zero code if the build fails.
+
+      - name: Create Issue on Failure
+        if: failure() && steps.build_step.outcome == 'failure' # Run only if build_step failed
+        uses: peter-evans/create-issue-from-file@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          title: Automated PDF Build Failed
+          content-filepath: ./build_log.txt # build_pdf.py creates this in the root
+          labels: |
+            bug
+            build-failure
+            automated-issue
 
       - name: Upload PDF artifact
+        if: success() && steps.build_step.outcome == 'success' # Run only if build_step succeeded
         uses: actions/upload-artifact@v4
         with:
           name: main-pdf
           path: main.pdf # Path to the generated PDF file
-          if-no-files-found: error # Fail if PDF is not found
+          if-no-files-found: error # Fail if PDF is not found (should not happen if build_step succeeded)
